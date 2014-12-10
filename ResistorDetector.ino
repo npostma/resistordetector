@@ -12,6 +12,8 @@ float R_MEASURE[NUM_MEASURE_POINTS] =
 {
     100,  // A0
     1000  // A1
+    10000  // A2
+    100000  // A3
 };
 
 void setup()
