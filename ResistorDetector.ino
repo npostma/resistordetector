@@ -1,6 +1,8 @@
 #include "resistortypes.h"
-
-#define NUM_MEASURE_POINTS 2
+#include "pitches.h"
+#include "morse.h"
+ 
+#define NUM_MEASURE_POINTS 4
 
 int raw = 0;           
 float Vin = 5.0;
@@ -10,10 +12,10 @@ float buffer = 0;
 
 float R_MEASURE[NUM_MEASURE_POINTS] = 
 {
-    100,  // A0
-    1000  // A1
-    10000  // A2
-    100000  // A3
+    100,      // A0
+    1000,     // A1
+    10000,    // A2
+    100000    // A3
 };
 
 void setup()
@@ -82,6 +84,27 @@ void loop()
     Serial.print("\tZekerheid: ");           
     Serial.print(100 / num_found);     
     Serial.println("%");
+    
+    
+    long number = R2_type;
+    int number_buffer[15] = { 0 };
+    
+    int counter = 0;
+    
+    // Nummer ophakken in losse cijfers.
+    // En omdraaien zodat het in de goede volgorde afgespeeld kan worden
+    while (number > 0)
+    {
+        int digit = number%10;
+        number /= 10;
+        
+        number_buffer[counter]  = digit;
+        counter++;
+    }
+    for(int i = counter-1; i >= 0; i--) {
+      play(number_buffer[i]);
+    }
+
     delay(1000);
   
 }
@@ -114,4 +137,26 @@ float measure(int r, int pin)
   
   buffer = (Vin / Vout) - 1;
   return (r / buffer);
+}
+
+void play(int number) {
+    // iterate over the notes of the melody:    
+    for (int note_index = 0; note_index < NUMBER_LENGTH; note_index++) {
+    
+        // to calculate the note duration, take one second
+        // divided by the note type.
+        //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
+        int note_duration = 1000 / number_durations[number][note_index];
+        
+        tone(8, NOTE_C6, note_duration);
+    
+        // to distinguish the notes, set a minimum time between them.
+        // the note's duration + 30% seems to work well:
+        int pauseBetweenNotes = note_duration * 1.30;
+        delay(pauseBetweenNotes);
+        // stop the tone playing:
+        Serial.println(digitalRead(8));
+        noTone(8);
+    }
+    delay(250);
 }
